@@ -7,16 +7,41 @@ import streamlit as st
 st.set_page_config(page_title="IGGL E&I TOOLS v2.1", page_icon="🛠️", layout="wide")
 st.markdown("""
 <style>
-.stApp {background:#0b1220;color:#e8eef7}
-[data-testid="stSidebar"] {background:#101c2e}
-h1,h2,h3 {color:#e8eef7}
-div[data-testid="stMetric"] {background:#111e31;padding:12px;border-radius:10px}
+:root { --ink:#243746; --muted:#718096; --teal:#168b83; --teal-dark:#116b66; --mint:#e8f5f1; --paper:#f5f8f7; --line:#e3ece9; }
+.stApp { background:linear-gradient(135deg,#f7faf9 0%,#eef6f3 55%,#f8fafc 100%); color:var(--ink); }
+[data-testid="stHeader"] { background:rgba(247,250,249,.82); }
+[data-testid="stSidebar"] { background:linear-gradient(180deg,#edf7f4 0%,#f7faf9 100%); border-right:1px solid #e0ebe7; }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color:#3d5960; }
+h1,h2,h3,h4 { color:#203b46 !important; letter-spacing:-.025em; }
+h1 { font-weight:750 !important; }
+p, label, .stMarkdown { color:#405660; }
+div[data-testid="stMetric"] { background:rgba(255,255,255,.88); border:1px solid var(--line); padding:16px 18px; border-radius:16px; box-shadow:0 5px 18px rgba(39,78,71,.045); transition:transform .18s ease,box-shadow .18s ease; }
+div[data-testid="stMetric"]:hover { transform:translateY(-2px); box-shadow:0 9px 24px rgba(39,78,71,.09); }
+div[data-testid="stMetric"] label { color:#71858a !important; }
+div[data-testid="stMetric"] [data-testid="stMetricValue"] { color:#176f69 !important; font-weight:700; }
+.stButton > button, .stDownloadButton > button { border:0; border-radius:12px; padding:.58rem 1.1rem; background:linear-gradient(135deg,#168b83,#36a99b); color:white; font-weight:650; box-shadow:0 5px 14px rgba(22,139,131,.16); transition:all .18s ease; }
+.stButton > button:hover, .stDownloadButton > button:hover { background:linear-gradient(135deg,#116f69,#238e84); transform:translateY(-1px); box-shadow:0 8px 18px rgba(22,139,131,.22); color:white; }
+.stTextInput input, .stNumberInput input, .stSelectbox [data-baseweb="select"], .stTextArea textarea { border-radius:10px !important; background:#fff !important; }
+[data-baseweb="tab-list"] { gap:8px; border-bottom:1px solid #e1ebe7; }
+button[data-baseweb="tab"] { border-radius:10px 10px 0 0; color:#5a7378; padding:10px 16px; }
+button[data-baseweb="tab"][aria-selected="true"] { color:#137b74; border-bottom:3px solid #168b83; background:#eaf6f2; font-weight:700; }
+[data-testid="stAlert"] { border-radius:14px; border:1px solid #e1ebe7; }
+[data-testid="stExpander"] { border:1px solid #e2ece8; border-radius:13px; background:rgba(255,255,255,.65); }
+hr { border-color:#e2ece8; }
+small,.stCaption { color:#71858a !important; }
+.stProgress > div > div { background:#168b83; }
+a { color:#137b74 !important; }
+@media (max-width: 700px) {
+ .block-container { padding-top:1.2rem; padding-left:1rem; padding-right:1rem; }
+ h1 { font-size:1.8rem !important; }
+ div[data-testid="stMetric"] { padding:12px; }
+}
 </style>
 """, unsafe_allow_html=True)
 
 st.title("IGGL E&I TOOLS")
-st.caption("Version 2.1 · Designed by T. Rabha")
-st.info("Python-based local engineering utility. Verify all results against approved project design documents, controlled standards and manufacturer data before operational use.")
+st.caption("Version 2.1 · Designed by T. Rabha  ·  Engineering tools for pipeline O&M")
+st.success("A clean, mobile-friendly engineering workspace. Verify all results against approved project design documents, controlled standards and manufacturer data before operational use.")
 
 PAGES = ["Dashboard", "Gas Engineering", "Instrumentation", "Electrical", "Telecom", "Audit Trail"]
 page = st.sidebar.radio("Department", PAGES)
