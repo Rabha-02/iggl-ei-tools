@@ -4,7 +4,7 @@ import io
 from datetime import datetime
 import streamlit as st
 
-st.set_page_config(page_title="IGGL E&I TOOLS v2.1", page_icon="🛠️", layout="wide")
+st.set_page_config(page_title="IGGL E&I TOOLS", page_icon="🧰", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""
 <style>
 :root { --ink:#243746; --muted:#718096; --teal:#168b83; --teal-dark:#116b66; --mint:#e8f5f1; --paper:#f5f8f7; --line:#e3ece9; }
@@ -36,138 +36,41 @@ a { color:#137b74 !important; }
  h1 { font-size:1.8rem !important; }
  div[data-testid="stMetric"] { padding:12px; }
 }
+
+.brandbar {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;margin:4px 0 24px;background:linear-gradient(110deg,#ffffff 0%,#f0faf6 100%);border:1px solid #e2eee9;border-radius:20px;box-shadow:0 8px 28px rgba(38,86,72,.055);}
+.brandname {font-size:28px;line-height:1.1;font-weight:850;letter-spacing:-1.2px;color:#173e43;}
+.brandname span {color:#16958a;}
+.brandtag {font-size:13px;color:#71858a;margin-top:6px;}
+.brandpill {font-size:10px;letter-spacing:1px;font-weight:750;color:#14786f;background:#e5f5ef;border:1px solid #cfe9df;padding:9px 12px;border-radius:999px;white-space:nowrap;}
+div[role="radiogroup"] {gap:8px;background:#edf5f2;padding:7px;border-radius:14px;border:1px solid #e0ebe6;}
+div[role="radiogroup"] label {background:transparent;border-radius:10px;padding:8px 14px;}
+div[role="radiogroup"] label:has(input:checked) {background:#ffffff;box-shadow:0 2px 8px rgba(31,82,70,.08);}
+div[role="radiogroup"] label p {font-weight:650;color:#35565a;}
+.stApp [data-testid="stVerticalBlock"] > div:has(> [data-testid="stHorizontalBlock"]) {min-width:0;}
+.tool-card {height:100%;background:#fff;border:1px solid #e3eee9;border-radius:18px;padding:20px;box-shadow:0 6px 20px rgba(35,78,66,.045);transition:all .2s ease;}
+.tool-card:hover {transform:translateY(-3px);box-shadow:0 12px 26px rgba(35,78,66,.09);border-color:#c7e4d9;}
+.tool-icon {width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:#e8f6f1;color:#168b83;font-size:21px;margin-bottom:13px;}
+.tool-title {font-size:17px;font-weight:750;color:#24434a;margin-bottom:5px;}
+.tool-desc {font-size:13px;color:#71858a;line-height:1.5;}
+@media(max-width:700px){.brandbar{padding:16px;border-radius:15px;align-items:flex-start;flex-direction:column}.brandname{font-size:24px}.brandpill{font-size:9px}div[role="radiogroup"]{overflow-x:auto;flex-wrap:nowrap}div[role="radiogroup"] label{white-space:nowrap;padding:7px 10px}}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("IGGL E&I TOOLS")
-st.caption("Version 2.1 · Designed by T. Rabha  ·  Engineering tools for pipeline O&M")
-st.success("A clean, mobile-friendly engineering workspace. Verify all results against approved project design documents, controlled standards and manufacturer data before operational use.")
+st.markdown("""
+<div class="brandbar">
+  <div><div class="brandname">IGGL <span>E&I</span> TOOLS</div>
+  <div class="brandtag">A practical workspace for operations & maintenance</div></div>
+  <div class="brandpill">DESIGNED BY T. RABHA</div>
+</div>
+""", unsafe_allow_html=True)
 
-PAGES = ["Dashboard", "Gas Engineering", "Instrumentation", "Electrical", "Telecom", "Audit Trail"]
-page = st.sidebar.radio("Department", PAGES)
+PAGES = ["Home", "Instrumentation", "Electrical", "Telecom", "Audit Trail"]
+if "active_page" not in st.session_state:
+    st.session_state.active_page = "Home"
+page = st.radio("Navigate", PAGES, horizontal=True, key="active_page", label_visibility="collapsed")
 
 def result(label, value):
     st.metric(label, value)
-
-def gas_composition():
-    from iso6976_engine import calculate_iso6976
-    from aga8_engine import calculate_aga8_detail
-
-    st.subheader("Gas composition – AGA 8 DETAIL and ISO 6976")
-    st.write("Enter gas composition on a molar-percent basis. The two standards are applied independently: AGA 8 DETAIL for operating-condition Z; ISO 6976 for combustion and reference-condition properties.")
-    components = ["Methane", "Ethane", "Propane", "i-Butane", "n-Butane", "i-Pentane",
-                  "n-Pentane", "Hexane", "Nitrogen", "CO₂", "Hydrogen", "H₂S", "Oxygen", "CO", "Helium"]
-    defaults = [90, 5, 2, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0]
-    cols = st.columns(3)
-    composition = {}
-    for i, (name, default) in enumerate(zip(components, defaults)):
-        with cols[i % 3]:
-            composition[name] = st.number_input(f"{name} (mol %)", min_value=0.0, max_value=100.0,
-                                                  value=float(default), step=0.01, key=f"gas_{name}")
-    total = sum(composition.values())
-    c1, c2 = st.columns(2)
-    c1.metric("Composition total", f"{total:.4f} mol %")
-    c2.metric("Composition check", "PASS" if abs(total - 100) <= 0.001 else "CHECK")
-
-    st.markdown("**AGA 8 operating conditions**")
-    a1, a2 = st.columns(2)
-    with a1:
-        p = st.number_input("Operating pressure (bar absolute)", min_value=0.001, value=50.0, key="aga8_p")
-    with a2:
-        t = st.number_input("Operating temperature (°C)", value=25.0, key="aga8_t")
-
-    st.markdown("**ISO 6976 reference conditions**")
-    i1, i2, i3 = st.columns(3)
-    with i1:
-        bp = st.number_input("Volume reference pressure (kPa absolute)", min_value=90.0, max_value=110.0, value=101.325, key="iso_bp")
-    with i2:
-        bt = st.selectbox("Volume reference temperature (°C)", [0.0, 15.0, 15.55, 20.0], index=1, key="iso_bt")
-    with i3:
-        ct = st.selectbox("Combustion temperature (°C)", [0.0, 15.0, 15.55, 20.0, 25.0], index=4, key="iso_ct")
-
-    st.caption("No composition normalization is performed. The entered mole percentages must sum to 100.000% (±0.001%).")
-    if st.button("Calculate AGA 8 DETAIL + ISO 6976", type="primary"):
-        if abs(total - 100) > 0.001:
-            st.error(f"Composition totals {total:.4f} mol %. Correct the composition before calculating.")
-            return
-        # AGA-8 DETAIL at actual operating pressure and temperature
-        try:
-            aga = calculate_aga8_detail(composition, p, t)
-            st.markdown("#### AGA 8 2017 Part 1 DETAIL")
-            st.metric("Compressibility factor Z (operating conditions)", f"{aga['z']:.7f}")
-            st.caption(f"{aga['engine']} · {aga['validation_status']}")
-        except Exception as exc:
-            st.error(f"AGA 8 DETAIL calculation unavailable: {exc}")
-
-        # ISO 6976 calculations at declared reference conditions
-        try:
-            iso = calculate_iso6976(composition, bt, ct, bp)
-            st.markdown("#### ISO 6976:2016")
-            st.caption("Combustion properties and density are calculated independently of the AGA 8 operating-condition Z.")
-            rows = [
-                ("Molar mass", f"{iso['molar_mass_kg_kmol']:.5f} kg/kmol"),
-                ("Gross calorific value – molar", f"{iso['gcv_molar_kj_mol']:.4f} kJ/mol"),
-                ("Net calorific value – molar", f"{iso['ncv_molar_kj_mol']:.4f} kJ/mol"),
-                ("Gross calorific value – mass", f"{iso['gcv_mass_mj_kg']:.5f} MJ/kg"),
-                ("Net calorific value – mass", f"{iso['ncv_mass_mj_kg']:.5f} MJ/kg"),
-                ("Gross calorific value – volume", f"{iso['gcv_vol_mj_m3']:.5f} MJ/m³"),
-                ("Net calorific value – volume", f"{iso['ncv_vol_mj_m3']:.5f} MJ/m³"),
-                ("Density", f"{iso['density_kg_m3']:.6f} kg/m³"),
-                ("Relative density / specific gravity", f"{iso['relative_density']:.6f}"),
-                ("Gross Wobbe index", f"{iso['gcv_wobbe_mj_m3']:.5f} MJ/m³"),
-                ("Net Wobbe index", f"{iso['ncv_wobbe_mj_m3']:.5f} MJ/m³"),
-                ("ISO reference-condition Z", f"{iso['z_reference']:.7f}"),
-            ]
-            st.table({"Property": [r[0] for r in rows], "Calculated value": [r[1] for r in rows]})
-            st.warning(iso["status"])
-        except Exception as exc:
-            st.error(f"ISO 6976 calculation not performed: {exc}")
-
-    with st.expander("Calculation method and limitations"):
-        st.markdown("""
-        - **AGA 8:** `pyaga8` adapter to the NIST AGA8 code port; DETAIL equation only. Pressure is converted from bar absolute to kPa and temperature from °C to K.
-        - **ISO 6976:** Separate ISO property calculation using the supported component subset in `iso6976_engine.py`. It does not use AGA 8 operating Z as a substitute for ISO reference-condition compression factor.
-        - ISO volume-basis applicability is checked at the selected reference conditions (Z must be greater than 0.9); reference temperature and pressure restrictions are enforced.
-        - The ISO engine currently supports the 15 components displayed above. It is not a full 60-component ISO Table A.2 implementation; unresolved C6+ must not be treated as pure n-hexane without an approved composition methodology.
-        - **Validation status:** This integration has not yet passed a documented independent NIST AGA8 verification run or the ISO 6976:2016 Annex D regression suite. Do not use for custody transfer, billing, fiscal metering, or operational set-point decisions until independently verified and approved.
-        """)
-
-def gas_engineering():
-    st.header("Gas Engineering")
-    tab1, tab2, tab3, tab4 = st.tabs(["Gas properties", "Velocity", "Line pack", "Gas balance"])
-    with tab1:
-        gas_composition()
-    with tab2:
-        st.subheader("Gas velocity")
-        q = st.number_input("Actual flow (m³/h)", min_value=0.0, value=10000.0)
-        d = st.number_input("Internal diameter (mm)", min_value=0.01, value=500.0)
-        if st.button("Calculate velocity"):
-            area = math.pi * (d / 1000) ** 2 / 4
-            velocity = (q / 3600) / area
-            result("Gas velocity", f"{velocity:.4f} m/s")
-    with tab3:
-        st.subheader("Pipeline line pack – single segment")
-        length = st.number_input("Pipeline length (km)", min_value=0.0, value=100.0)
-        diameter = st.number_input("Internal diameter (mm)", min_value=0.01, value=500.0)
-        pressure = st.number_input("Average absolute pressure (bara)", min_value=0.001, value=40.0)
-        temp = st.number_input("Average gas temperature (°C)", value=25.0)
-        z = st.number_input("Compressibility factor Z (enter validated value)", min_value=0.01, value=0.9)
-        base_p = st.number_input("Base pressure (bara)", min_value=0.001, value=1.01325)
-        base_t = st.number_input("Base temperature (K)", min_value=0.001, value=288.15)
-        if st.button("Calculate line pack"):
-            volume = math.pi * (diameter / 1000) ** 2 / 4 * length * 1000
-            base_volume = volume * pressure / base_p * base_t / (temp + 273.15) / z
-            result("Geometric pipeline volume", f"{volume:,.2f} m³")
-            result("Approximate base-volume equivalent", f"{base_volume:,.2f} Sm³")
-            st.caption("Uses user-entered Z. This is a single-segment ideal-gas conversion estimate, not a pressure-profile or AGA-8 calculation.")
-    with tab4:
-        st.subheader("Gas balance / unaccounted-for gas")
-        incoming = st.number_input("Total input (Sm³)", min_value=0.0, value=100000.0)
-        outgoing = st.number_input("Total output (Sm³)", min_value=0.0, value=98500.0)
-        if st.button("Calculate gas balance"):
-            ufg = incoming - outgoing
-            result("Unaccounted-for gas", f"{ufg:,.2f} Sm³")
-            result("UFG (% of input)", f"{(ufg / incoming * 100 if incoming else 0):.4f} %")
 
 def instrumentation():
     st.header("Instrumentation")
@@ -310,22 +213,32 @@ def audit_trail():
             st.rerun()
     st.caption("Session-only log. It is not persistent, tamper-evident or a controlled records system.")
 
-if page == "Dashboard":
-    st.header("Engineering tools for pipeline O&M")
-    st.write("Choose a department from the sidebar.")
-    cols = st.columns(5)
-    for col, name, desc in zip(cols, PAGES[1:], [
-        "Gas properties, pipeline flow and balance", "4–20 mA, RTD and calibration",
-        "UPS, cables and power", "OFC and network", "Session records and CSV export"
-    ]):
+if page == "Home":
+    st.markdown("## Welcome")
+    st.markdown("Select a workspace to get started.")
+    cards = [
+        ("🎛️", "Instrumentation", "Signal conversion, RTD, pressure and calibration tools."),
+        ("⚡", "Electrical", "Battery autonomy, cable voltage drop and power calculations."),
+        ("🌐", "Telecom", "OFC link budget, network performance and bandwidth."),
+        ("📋", "Audit Trail", "Record observations and export your session log.")
+    ]
+    cols = st.columns(2, gap="large")
+    for col, (icon, name, desc) in zip(cols, cards):
         with col:
-            st.markdown(f"**{name}**")
-            st.caption(desc)
-elif page == "Gas Engineering": gas_engineering()
-elif page == "Instrumentation": instrumentation()
-elif page == "Electrical": electrical()
-elif page == "Telecom": telecom()
-elif page == "Audit Trail": audit_trail()
+            st.markdown(f'<div class="tool-card"><div class="tool-icon">{icon}</div><div class="tool-title">{name}</div><div class="tool-desc">{desc}</div></div>', unsafe_allow_html=True)
+            if st.button(f"Open {name} →", key=f"open_{name}", use_container_width=True):
+                st.session_state.active_page = name
+                st.rerun()
+    st.markdown("")
+    st.caption("Choose a department above or open a workspace card.")
+elif page == "Instrumentation":
+    instrumentation()
+elif page == "Electrical":
+    electrical()
+elif page == "Telecom":
+    telecom()
+elif page == "Audit Trail":
+    audit_trail()
 
 st.divider()
-st.caption("IGGL E&I TOOLS v2.1 · Designed by T. Rabha · Local Python/Streamlit application")
+st.caption("IGGL E&I TOOLS  ·  Designed by T. Rabha")
